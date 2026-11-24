@@ -1,20 +1,12 @@
--- SECTION 00: DATA QUALITY & DATA INSPECTION
--- Purpose: identify issues before using the data. This script does not modify source data.
-USE retail_analytics;
-
 SHOW TABLES;
+----------------------------------------------------------------------------------------------------
 DESCRIBE customers;
 DESCRIBE products;
 DESCRIBE stores;
 DESCRIBE sales;
 
--- Row counts
-SELECT 'sales' AS table_name, COUNT(*) AS row_count FROM sales
-UNION ALL SELECT 'customers', COUNT(*) FROM customers
-UNION ALL SELECT 'products', COUNT(*) FROM products
-UNION ALL SELECT 'stores', COUNT(*) FROM stores;
 
--- Missing values in important sales fields
+Missing values in important sales fields
 SELECT
     SUM(Transaction_ID IS NULL) AS missing_transaction_id,
     SUM(Customer_ID IS NULL) AS missing_customer_id,
@@ -24,15 +16,6 @@ SELECT
     SUM(Unit_Price IS NULL) AS missing_unit_price,
     SUM(Discount IS NULL) AS missing_discount
 FROM sales;
-
--- Duplicate transaction IDs: a transaction ID can legitimately appear on multiple product lines.
--- This query flags IDs appearing more than once; inspect whether these are expected line items.
-SELECT Transaction_ID, COUNT(*) AS rows_for_transaction
-FROM sales
-WHERE Transaction_ID IS NOT NULL
-GROUP BY Transaction_ID
-HAVING COUNT(*) > 1
-ORDER BY rows_for_transaction DESC;
 
 -- Exact duplicate sales rows across the available business columns
 SELECT Transaction_ID, Customer_ID, Product_ID, Store_ID, Quantity, Unit_Price, Discount,
